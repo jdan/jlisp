@@ -25,11 +25,10 @@ class JLisp < Parslet::Parser
     match('[^"]').repeat.as(:string) >>
     match('"')  >> space?
   }
+  rule(:identifier) { match('[^\(\)\{\}\"\:\s]').repeat(1).as(:identifier) >> space? }
   rule(:symbol) {
-    match(":") >>
-    match("[^:\s]").repeat(1).as(:symbol) >> space?
+    match(":") >> identifier.as(:symbol)
   }
-  rule(:identifier) { match('[^\(\)\{\}\"\s]').repeat(1).as(:identifier) >> space? }
 
   rule(:atom) { number | boolean | string | symbol | identifier }
 
@@ -107,7 +106,7 @@ def eval(ast, env)
   elsif ast.key? :number
     [ast[:number].to_f, env]
   elsif ast.key? :symbol
-    [ast[:symbol].to_sym, env]
+    [ast[:symbol][:identifier].to_sym, env]
   elsif ast.key? :boolean
     [
       ast[:boolean].to_s[1] == 't' ? true : false,
