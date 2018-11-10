@@ -76,6 +76,19 @@ describe "define" do
       '(define (plus1 x) (+ x 1)) (plus1 6)'
     )).to eq 7
   end
+
+  it "should define recursive functions" do
+    factorial = <<-SRC
+      (define (factorial n)
+        (if (= n 0)
+            1
+            (* n (factorial (- n 1)))))
+    SRC
+
+    expect(eval_result("#{factorial}(factorial 1)")).to eq 1
+    expect(eval_result("#{factorial}(factorial 3)")).to eq 6
+    expect(eval_result("#{factorial}(factorial 5)")).to eq 120
+  end
 end
 
 describe "if" do
