@@ -1,6 +1,10 @@
 require_relative "../lib/main.rb"
 
 describe "atoms" do
+  it "should eval nil" do
+    expect(eval_result(' nil')).to eq nil
+  end
+
   it "should eval numbers" do
     expect(eval_result(' 5 ')).to eq 5
     expect(eval_result('123')).to eq 123
@@ -38,6 +42,12 @@ describe "maps" do
     expect(eval_result(
       '{ :hello (car (list "computed" 1 2)) }'
     )).to eq ({ hello: "computed" })
+  end
+
+  it "should be able to lookup map values by key" do
+    expect(eval_result('({ :a 1 :b 2 } :a)')).to eq 1
+    expect(eval_result('({ :a 1 :b 2 } (car (list :a :b)))')).to eq 1
+    expect(eval_result('({ :a 1 :b 2 } :c)')).to eq nil
   end
 end
 

@@ -9,6 +9,9 @@ class JLisp < Parslet::Parser
   rule(:space) { match('\s').repeat(1) }
   rule(:space?) { space.maybe }
 
+  rule(:nil_) {
+    str('nil').as(:nil) >> space?
+  }
   rule(:number) {
     (
       match('[0-9]').repeat(1) >>
@@ -23,14 +26,14 @@ class JLisp < Parslet::Parser
   rule(:string) {
     match('"') >>
     match('[^"]').repeat.as(:string) >>
-    match('"')  >> space?
+    match('"') >> space?
   }
   rule(:identifier) { match('[^\(\)\{\}\"\:\s]').repeat(1).as(:identifier) >> space? }
   rule(:symbol) {
     match(":") >> identifier.as(:symbol)
   }
 
-  rule(:atom) { number | boolean | string | symbol | identifier }
+  rule(:atom) { nil_ | number | boolean | string | symbol | identifier }
 
   rule(:define_expression) {
     (
@@ -65,6 +68,14 @@ class JLisp < Parslet::Parser
     ).as(:map_expression)
   }
 
+  rule(:map_invocation) {
+    (
+      oparen >>
+      map_expression.as(:map) >> expression.as(:lookup) >>
+      cparen
+    ).as(:map_invocation)
+  }
+
   rule(:invocation) {
     (
       oparen >>
@@ -79,6 +90,7 @@ class JLisp < Parslet::Parser
     define_expression |
     if_expression |
     map_expression |
+    map_invocation |
     invocation
   }
 
@@ -99,7 +111,9 @@ rescue Parslet::ParseFailed => failure
 end
 
 def eval(ast, env)
-  if ast.key? :identifier
+  if ast.key? :nil
+    [nil, env]
+  elsif ast.key? :identifier
     [env[ast[:identifier].to_s], env]
   elsif ast.key? :string
     [ast[:string], env]
@@ -151,6 +165,12 @@ def eval(ast, env)
     end
 
     [res, env]
+  elsif ast.key? :map_invocation
+    expr = ast[:map_invocation]
+    map = eval(expr[:map], env).first
+    key = eval(expr[:lookup], env).first
+
+    [map[key], env]
   elsif ast.key? :invocation
     expr = ast[:invocation]
     fn = env[expr[:func][:identifier].to_s]
