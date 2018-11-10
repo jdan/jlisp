@@ -24,8 +24,8 @@ class JLisp < Parslet::Parser
     match('"')  >> space?
   }
   rule(:symbol) {
-    match("'") >>
-    match("[^'\s]").repeat(1).as(:symbol) >> space?
+    match(":") >>
+    match("[^:\s]").repeat(1).as(:symbol) >> space?
   }
   rule(:identifier) { match('[^\(\)\"\s]').repeat(1).as(:identifier) >> space? }
 

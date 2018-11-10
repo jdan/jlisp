@@ -17,8 +17,8 @@ describe "atoms" do
   end
 
   it "should eval symbols" do
-    expect(eval_result("'hello")).to eq :hello
-    expect(eval_result("'sym-*")).to eq :"sym-*"
+    expect(eval_result(":hello")).to eq :hello
+    expect(eval_result(":sym-*'")).to eq :"sym-*'"
   end
 end
 
@@ -37,7 +37,7 @@ describe "invocation" do
     expect(eval_result('(= 1 2)')).to eq false
 
     expect(eval_result('(list 1 2 3)')).to eq [1, 2, 3]
-    expect(eval_result("(car (list '1 2 3))")).to eq :"1"
+    expect(eval_result("(car (list :1 2 3))")).to eq :"1"
     expect(eval_result('(cdr (list 1 2 3))')).to eq [2, 3]
 
     expect(eval_result('(and #t #t)')).to eq true
