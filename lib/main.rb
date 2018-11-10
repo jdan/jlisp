@@ -7,7 +7,12 @@ class JLisp < Parslet::Parser
   rule(:space) { match('\s').repeat(1) }
   rule(:space?) { space.maybe }
 
-  rule(:number) { match('[0-9]').repeat(1).as(:number) >> space? }
+  rule(:number) {
+    (
+      match('[0-9]').repeat(1) >>
+      (str('.') >> match('[0-9]').repeat(1)).maybe
+    ).as(:number) >> space?
+  }
   rule(:string) {
     match('"') >>
     match('[^"]').repeat.as(:string) >>
@@ -58,7 +63,7 @@ def eval(ast, env)
   elsif ast.key? :string
     [ast[:string], env]
   elsif ast.key? :number
-    [ast[:number].to_i, env]
+    [ast[:number].to_f, env]
   elsif ast.key? :define_expression
     expr = ast[:define_expression]
 

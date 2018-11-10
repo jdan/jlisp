@@ -13,3 +13,5 @@ gem "parslet", "~> 1.8"
 gem "guard", "~> 2.14"
 
 gem "guard-rspec", "~> 4.7"
+
+gem "rake", "~> 12.3"
