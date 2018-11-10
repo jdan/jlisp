@@ -51,11 +51,23 @@ class JLisp < Parslet::Parser
     (
       oparen >>
       str('if') >> space? >>
-      expression.as(:condition) >>
-      expression.as(:consequent) >>
-      expression.as(:alternate) >>
+        expression.as(:condition) >>
+        expression.as(:consequent) >>
+        expression.as(:alternate) >>
       cparen
     ).as(:if_expression)
+  }
+
+  rule(:lambda_expression) {
+    (
+      oparen >>
+      str('fn') >> space? >>
+        oparen >>
+          identifier.repeat.as(:args) >>
+        cparen >>
+      expression.as(:body) >>
+      cparen
+    ).as(:lambda_expression)
   }
 
   rule(:map_expression) {
@@ -79,7 +91,7 @@ class JLisp < Parslet::Parser
   rule(:invocation) {
     (
       oparen >>
-      identifier.as(:func) >>
+      expression.as(:func) >>
       expression.repeat.as(:args) >>
       cparen
     ).as(:invocation)
@@ -89,6 +101,7 @@ class JLisp < Parslet::Parser
     atom |
     define_expression |
     if_expression |
+    lambda_expression |
     map_expression |
     map_invocation |
     invocation
@@ -147,6 +160,19 @@ def eval(ast, env)
     # I guess we have to do this twice
     new_env[expr[:name][:identifier].to_s] = fn
     [:ok, env.merge(new_env)]
+  elsif ast.key? :lambda_expression
+    expr = ast[:lambda_expression]
+    fn = ->(*args) do
+      new_env = {}
+      expr[:args].each_with_index do |arg, i|
+        new_env[arg[:identifier].to_s] = args[i]
+      end
+
+      # Eval the body with the environment, and return just the result
+      eval(expr[:body], env.merge(new_env)).first
+    end
+
+    [fn, env]
   elsif ast.key? :if_expression
     expr = ast[:if_expression]
 
@@ -173,7 +199,7 @@ def eval(ast, env)
     [map[key], env]
   elsif ast.key? :invocation
     expr = ast[:invocation]
-    fn = env[expr[:func][:identifier].to_s]
+    fn = eval(expr[:func], env).first
 
     # Eval each of the arguments
     args = expr[:args].map do |arg|

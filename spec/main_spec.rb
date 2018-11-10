@@ -68,6 +68,22 @@ describe "invocation" do
     expect(eval_result('(or #t #t)')).to eq true
     expect(eval_result('(or #f #f)')).to eq false
   end
+
+  it "should be able to nest invocations" do
+    expect(eval_result(
+      '((car (list + -)) 3 4)'
+    )).to eq 7
+  end
+end
+
+describe "lambda" do
+  it "should be able to define lambda functions" do
+    expect(eval_result('((fn (a b) (+ a b)) 5 6)')).to eq 11
+  end
+
+  it "should not check arity of the arguments" do
+    expect(eval_result('((fn () 10) 5 6)')).to eq 10
+  end
 end
 
 describe "define" do
