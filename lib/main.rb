@@ -13,13 +13,19 @@ class JLisp < Parslet::Parser
       (str('.') >> match('[0-9]').repeat(1)).maybe
     ).as(:number) >> space?
   }
+  rule(:boolean) {
+    (
+      str('#') >> (str('t') | str('f'))
+    ).as(:boolean) >> space?
+  }
   rule(:string) {
     match('"') >>
     match('[^"]').repeat.as(:string) >>
     match('"')  >> space?
   }
   rule(:identifier) { match('[^\(\)\"\s]').repeat(1).as(:identifier) >> space? }
-  rule(:atom) { number | string | identifier }
+
+  rule(:atom) { number | boolean | string | identifier }
 
   rule(:define_expression) {
     (
@@ -80,6 +86,11 @@ def eval(ast, env)
     [ast[:string], env]
   elsif ast.key? :number
     [ast[:number].to_f, env]
+  elsif ast.key? :boolean
+    [
+      ast[:boolean].to_s[1] == 't' ? true : false,
+      env
+    ]
   elsif ast.key? :define_expression
     expr = ast[:define_expression]
 
@@ -137,6 +148,8 @@ def eval_result(src)
     "*" => ->(a, b) { a * b },
     "/" => ->(a, b) { a / b },
     "=" => ->(a, b) { a == b },
+    "and" => ->(a, b) { a && b },
+    "or" => ->(a, b) { a || b },
     "list" => ->(*args) { args },
     "car" => ->(ls) { ls[0] },
     "cdr" => ->(ls) { ls.drop(1) },
