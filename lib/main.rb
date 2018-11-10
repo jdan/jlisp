@@ -3,6 +3,8 @@ require 'parslet'
 class JLisp < Parslet::Parser
   rule(:oparen) { str('(') >> space? }
   rule(:cparen) { str(')') >> space? }
+  rule(:obrace) { str('{') >> space? }
+  rule(:cbrace) { str('}') >> space? }
 
   rule(:space) { match('\s').repeat(1) }
   rule(:space?) { space.maybe }
@@ -27,7 +29,7 @@ class JLisp < Parslet::Parser
     match(":") >>
     match("[^:\s]").repeat(1).as(:symbol) >> space?
   }
-  rule(:identifier) { match('[^\(\)\"\s]').repeat(1).as(:identifier) >> space? }
+  rule(:identifier) { match('[^\(\)\{\}\"\s]').repeat(1).as(:identifier) >> space? }
 
   rule(:atom) { number | boolean | string | symbol | identifier }
 
@@ -54,6 +56,16 @@ class JLisp < Parslet::Parser
     ).as(:if_expression)
   }
 
+  rule(:map_expression) {
+    (
+      obrace >>
+      (
+        symbol.as(:key) >> expression.as(:value)
+      ).repeat.as(:pairs) >>
+      cbrace
+    ).as(:map_expression)
+  }
+
   rule(:invocation) {
     (
       oparen >>
@@ -67,6 +79,7 @@ class JLisp < Parslet::Parser
     atom |
     define_expression |
     if_expression |
+    map_expression |
     invocation
   }
 
@@ -75,6 +88,9 @@ class JLisp < Parslet::Parser
   rule(:program) { space? >> sequence }
 
   root(:program)
+end
+
+class ParseError < StandardError
 end
 
 def parse(str)
@@ -126,6 +142,16 @@ def eval(ast, env)
     else
       eval(expr[:alternate], env)
     end
+  elsif ast.key? :map_expression
+    expr = ast[:map_expression]
+    res = {}
+    expr[:pairs].each do |pair|
+      key = eval(pair[:key], env).first
+      val = eval(pair[:value], env).first
+      res[key] = val
+    end
+
+    [res, env]
   elsif ast.key? :invocation
     expr = ast[:invocation]
     fn = env[expr[:func][:identifier].to_s]
@@ -144,6 +170,8 @@ def eval(ast, env)
     end
 
     [result.first, env]
+  else
+    raise ParseError.new("Unsure how to parse #{ast.keys.first}")
   end
 end
 

@@ -28,6 +28,19 @@ describe "sequences" do
   end
 end
 
+describe "maps" do
+  it "should create empty maps" do
+    expect(eval_result('{}')).to eq ({})
+  end
+
+  it "should create maps with symbol keys" do
+    expect(eval_result('{ :a 1 :b 2 }')).to eq ({ a: 1, b: 2 })
+    expect(eval_result(
+      '{ :hello (car (list "computed" 1 2)) }'
+    )).to eq ({ hello: "computed" })
+  end
+end
+
 describe "invocation" do
   it "should be able to invoke functions" do
     # TODO: probably move stdlib elsewhere
@@ -67,5 +80,5 @@ describe "if" do
            "ok"
            "no")'
     )).to eq "no"
-    end
   end
+end
