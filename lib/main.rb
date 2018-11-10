@@ -33,6 +33,17 @@ class JLisp < Parslet::Parser
     ).as(:define_expression)
   }
 
+  rule(:if_expression) {
+    (
+      oparen >>
+      str('if') >> space? >>
+      expression.as(:condition) >>
+      expression.as(:consequent) >>
+      expression.as(:alternate) >>
+      cparen
+    ).as(:if_expression)
+  }
+
   rule(:invocation) {
     (
       oparen >>
@@ -42,7 +53,12 @@ class JLisp < Parslet::Parser
     ).as(:invocation)
   }
 
-  rule(:expression) { atom | define_expression | invocation }
+  rule(:expression) {
+    atom |
+    define_expression |
+    if_expression |
+    invocation
+  }
 
   rule(:sequence) { expression.repeat(1).as(:sequence) }
 
@@ -85,6 +101,14 @@ def eval(ast, env)
     # I guess we have to do this twice
     new_env[expr[:name][:identifier].to_s] = fn
     [:ok, env.merge(new_env)]
+  elsif ast.key? :if_expression
+    expr = ast[:if_expression]
+
+    if eval(expr[:condition], env).first
+      eval(expr[:consequent], env)
+    else
+      eval(expr[:alternate], env)
+    end
   elsif ast.key? :invocation
     expr = ast[:invocation]
     fn = env[expr[:func][:identifier].to_s]
@@ -112,6 +136,7 @@ def eval_result(src)
     "-" => ->(a, b) { a - b },
     "*" => ->(a, b) { a * b },
     "/" => ->(a, b) { a / b },
+    "=" => ->(a, b) { a == b },
     "list" => ->(*args) { args },
     "car" => ->(ls) { ls[0] },
     "cdr" => ->(ls) { ls.drop(1) },

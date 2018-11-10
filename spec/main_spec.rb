@@ -24,6 +24,7 @@ describe "invocation" do
     expect(eval_result('(+ 1 2)')).to eq 3
     expect(eval_result('(* (+ 1 3) 6)')).to eq 24
     expect(eval_result('(/ 1 2)')).to eq 0.5
+    expect(eval_result('(= 1 2)')).to eq false
 
     expect(eval_result('(list 1 2 3)')).to eq [1, 2, 3]
     expect(eval_result('(car (list 1 2 3))')).to eq 1
@@ -38,3 +39,18 @@ describe "define" do
     )).to eq 7
   end
 end
+
+describe "if" do
+  it "should eval if statements" do
+    expect(eval_result(
+      '(if 1 2 3)'
+    )).to eq 2
+
+    expect(eval_result(
+      '(if (= (car (list 1 2 3))
+              5)
+           "ok"
+           "no")'
+    )).to eq "no"
+    end
+  end
