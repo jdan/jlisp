@@ -104,6 +104,12 @@ end
 def fresh_env
   {
     "+" => ->(a, b) { a + b },
+    "-" => ->(a, b) { a + b },
+    "*" => ->(a, b) { a + b },
+    "/" => ->(a, b) { a + b },
+    "list" => ->(*args) { args },
+    "car" => ->(ls) { ls[0] },
+    "cdr" => ->(ls) { ls.drop(1) },
   }
 end
 
@@ -111,7 +117,7 @@ src = <<-JLISP
   (define (plus a b)
     (+ a b))
 
-  (plus 5 6)
+  (list 10 (plus 5 6) 12)
 JLISP
 
 p eval(parse(src), fresh_env).first
