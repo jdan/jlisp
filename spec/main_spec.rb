@@ -121,3 +121,13 @@ describe "if" do
     )).to eq "no"
   end
 end
+
+describe "let" do
+  it "should eval let statements" do
+    expect(eval_result(
+      '(let [(a 10)
+             (b (+ 4 5))]
+          (+ a b))'
+    )).to eq 19
+  end
+end

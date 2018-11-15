@@ -3,8 +3,10 @@ require 'parslet'
 class JLisp < Parslet::Parser
   rule(:oparen) { str('(') >> space? }
   rule(:cparen) { str(')') >> space? }
-  rule(:obrace) { str('{') >> space? }
-  rule(:cbrace) { str('}') >> space? }
+  rule(:obrace) { str('[') >> space? }
+  rule(:cbrace) { str(']') >> space? }
+  rule(:ocurly) { str('{') >> space? }
+  rule(:ccurly) { str('}') >> space? }
 
   rule(:space) { match('\s').repeat(1) }
   rule(:space?) { space.maybe }
@@ -70,13 +72,30 @@ class JLisp < Parslet::Parser
     ).as(:lambda_expression)
   }
 
+  rule(:let_expression) {
+    (
+      oparen >>
+      str('let') >> space? >>
+        obrace >>
+          (
+            oparen >>
+              identifier >>
+              expression.as(:value) >>
+            cparen
+          ).repeat.as(:bindings) >>
+        cbrace >>
+      expression.as(:body) >>
+      cparen
+    ).as(:let_expression)
+  }
+
   rule(:map_expression) {
     (
-      obrace >>
+      ocurly >>
       (
         symbol.as(:key) >> expression.as(:value)
       ).repeat.as(:pairs) >>
-      cbrace
+      ccurly
     ).as(:map_expression)
   }
 
@@ -102,6 +121,7 @@ class JLisp < Parslet::Parser
     define_expression |
     if_expression |
     lambda_expression |
+    let_expression |
     map_expression |
     map_invocation |
     invocation
@@ -173,6 +193,14 @@ def eval(ast, env)
     end
 
     [fn, env]
+  elsif ast.key? :let_expression
+    expr = ast[:let_expression]
+    new_env = {}
+    expr[:bindings].each do |binding|
+      new_env[binding[:identifier].to_s] = eval(binding[:value], env).first
+    end
+
+    eval(expr[:body], env.merge(new_env))
   elsif ast.key? :if_expression
     expr = ast[:if_expression]
 
