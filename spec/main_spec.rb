@@ -48,6 +48,7 @@ describe "maps" do
     expect(eval_result('({ :a 1 :b 2 } :a)')).to eq 1
     expect(eval_result('({ :a 1 :b 2 } (car (list :a :b)))')).to eq 1
     expect(eval_result('({ :a 1 :b 2 } :c)')).to eq nil
+    expect(eval_result('((car (list { :c 3 } { :a 1 :b 2 })) :c)')).to eq 3
   end
 end
 

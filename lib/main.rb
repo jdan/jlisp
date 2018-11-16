@@ -99,14 +99,6 @@ class JLisp < Parslet::Parser
     ).as(:map_expression)
   }
 
-  rule(:map_invocation) {
-    (
-      oparen >>
-      map_expression.as(:map) >> expression.as(:lookup) >>
-      cparen
-    ).as(:map_invocation)
-  }
-
   rule(:invocation) {
     (
       oparen >>
@@ -123,7 +115,6 @@ class JLisp < Parslet::Parser
     lambda_expression |
     let_expression |
     map_expression |
-    map_invocation |
     invocation
   }
 
@@ -219,12 +210,6 @@ def eval(ast, env)
     end
 
     [res, env]
-  elsif ast.key? :map_invocation
-    expr = ast[:map_invocation]
-    map = eval(expr[:map], env).first
-    key = eval(expr[:lookup], env).first
-
-    [map[key], env]
   elsif ast.key? :invocation
     expr = ast[:invocation]
     fn = eval(expr[:func], env).first
@@ -234,7 +219,16 @@ def eval(ast, env)
       eval(arg, env).first
     end
 
-    [fn.(*args), env]
+    is_map_invocation =
+      fn.is_a?(Hash) &&
+      args.size == 1 &&
+      args.first.is_a?(Symbol)
+
+    if is_map_invocation
+      [fn[args.first], env]
+    else
+      [fn.(*args), env]
+    end
   elsif ast.key? :sequence
     # Reduce the expressions, extending the environment between each call
     init = [nil, env]
