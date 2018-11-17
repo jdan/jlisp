@@ -195,10 +195,12 @@ def eval(ast, env)
     [fn, env]
   elsif ast.key? :let_expression
     expr = ast[:let_expression]
-    new_env = {}
-    expr[:bindings].each do |binding|
-      new_env[binding[:identifier].to_s] = eval(binding[:value], env).first
-    end
+    new_env = expr[:bindings].map do |binding|
+      [
+        binding[:identifier].to_s,
+        eval(binding[:value], env).first
+      ]
+    end.to_h
 
     eval(expr[:body], env.merge(new_env))
   elsif ast.key? :if_expression
