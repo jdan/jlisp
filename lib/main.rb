@@ -211,12 +211,12 @@ def eval(ast, env)
     end
   elsif ast.key? :map_expression
     expr = ast[:map_expression]
-    res = {}
-    expr[:pairs].each do |pair|
-      key = eval(pair[:key], env).first
-      val = eval(pair[:value], env).first
-      res[key] = val
-    end
+    res = expr[:pairs].map do |pair|
+      [
+        eval(pair[:key], env).first,
+        eval(pair[:value], env).first
+      ]
+    end.to_h
 
     [res, env]
   elsif ast.key? :invocation
