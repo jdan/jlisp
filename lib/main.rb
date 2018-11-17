@@ -89,6 +89,13 @@ class JLisp < Parslet::Parser
     ).as(:let_expression)
   }
 
+  rule(:do_expression) {
+    oparen >>
+      str('do') >> space? >>
+      sequence >>
+    cparen
+  }
+
   rule(:map_expression) {
     (
       ocurly >>
@@ -114,6 +121,7 @@ class JLisp < Parslet::Parser
     if_expression |
     lambda_expression |
     let_expression |
+    do_expression |
     map_expression |
     invocation
   }

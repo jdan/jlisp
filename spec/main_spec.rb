@@ -132,3 +132,9 @@ describe "let" do
     )).to eq 19
   end
 end
+
+describe "do" do
+  it "should eval do expressions" do
+    expect(eval_result('(do 1 2 3)')).to eq 3
+  end
+end
