@@ -265,14 +265,3 @@ def eval_result(src)
   }
   eval(parse(src), fresh_env).first
 end
-
-src = <<-JLISP
-  (define (plus a b)
-    (+ a b))
-
-  (list 10 (plus 5 6) 12)
-JLISP
-
-if __FILE__ == $0
-  p eval_result(src)
-end
