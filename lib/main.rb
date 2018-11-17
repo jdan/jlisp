@@ -163,13 +163,15 @@ def eval(ast, env)
 
     # Create a new function
     fn = ->(*args) do
+      ident = expr[:name][:identifier].to_s
+
       # Extend the env with the function itself, and a lookup
       # of each arg
-      new_env = {}
-      new_env[expr[:name][:identifier].to_s] = fn
-      expr[:args].each_with_index do |arg, i|
-        new_env[arg[:identifier].to_s] = args[i]
-      end
+      new_env = (
+        expr[:args].map.with_index do |arg, i|
+          [arg[:identifier].to_s, args[i]]
+        end + [[ident, fn]]
+      ).to_h
 
       # Eval the body with the environment, and return just the result
       eval(expr[:body], env.merge(new_env)).first
@@ -182,10 +184,9 @@ def eval(ast, env)
   elsif ast.key? :lambda_expression
     expr = ast[:lambda_expression]
     fn = ->(*args) do
-      new_env = {}
-      expr[:args].each_with_index do |arg, i|
-        new_env[arg[:identifier].to_s] = args[i]
-      end
+      new_env = expr[:args].map.with_index do |arg, i|
+        [arg[:identifier].to_s, args[i]]
+      end.to_h
 
       # Eval the body with the environment, and return just the result
       eval(expr[:body], env.merge(new_env)).first
