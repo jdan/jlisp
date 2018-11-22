@@ -60,9 +60,9 @@ describe "invocation" do
     expect(eval_result('(/ 1 2)')).to eq 0.5
     expect(eval_result('(= 1 2)')).to eq false
 
-    expect(eval_result('(list 1 2 3)')).to eq [1, 2, 3]
+    expect(eval_result('(list 1 2 3)')).to eq [1, [2, [3, []]]]
     expect(eval_result("(car (list :1 2 3))")).to eq :"1"
-    expect(eval_result('(cdr (list 1 2 3))')).to eq [2, 3]
+    expect(eval_result('(cdr (list 1 2 3))')).to eq [2, [3, []]]
 
     expect(eval_result('(and #t #t)')).to eq true
     expect(eval_result('(and #t #f)')).to eq false

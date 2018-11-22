@@ -254,6 +254,18 @@ def eval(ast, env)
 end
 
 def eval_result(src)
+  list = ->(*args) {
+    def inner(args)
+      if args == []
+        []
+      else
+        [args.first, inner(args.drop(1))]
+      end
+    end
+
+    inner args
+  }
+
   fresh_env = {
     "+" => ->(a, b) { a + b },
     "-" => ->(a, b) { a - b },
@@ -262,9 +274,10 @@ def eval_result(src)
     "=" => ->(a, b) { a == b },
     "and" => ->(a, b) { a && b },
     "or" => ->(a, b) { a || b },
-    "list" => ->(*args) { args },
+    "list" => list,
+    "cons" => ->(a, b) { [a, b] },
     "car" => ->(ls) { ls[0] },
-    "cdr" => ->(ls) { ls.drop(1) },
+    "cdr" => ->(ls) { ls[1] },
   }
   eval(parse(src), fresh_env).first
 end
