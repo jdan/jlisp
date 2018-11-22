@@ -45,10 +45,10 @@ describe "maps" do
   end
 
   it "should be able to lookup map values by key" do
-    expect(eval_result('({ :a 1 :b 2 } :a)')).to eq 1
-    expect(eval_result('({ :a 1 :b 2 } (car (list :a :b)))')).to eq 1
-    expect(eval_result('({ :a 1 :b 2 } :c)')).to eq nil
-    expect(eval_result('((car (list { :c 3 } { :a 1 :b 2 })) :c)')).to eq 3
+    expect(eval_result('(:a { :a 1 :b 2 })')).to eq 1
+    expect(eval_result('((car (list :a :b)) { :a 1 :b 2 })')).to eq 1
+    expect(eval_result('(:c { :a 1 :b 2 })')).to eq nil
+    expect(eval_result('(:c (car (list { :c 3 } { :a 1 :b 2 })))')).to eq 3
   end
 end
 

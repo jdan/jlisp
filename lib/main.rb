@@ -231,12 +231,12 @@ def eval(ast, env)
     end
 
     is_map_invocation =
-      fn.is_a?(Hash) &&
+      fn.is_a?(Symbol) &&
       args.size == 1 &&
-      args.first.is_a?(Symbol)
+      args.first.is_a?(Hash)
 
     if is_map_invocation
-      [fn[args.first], env]
+      [args.first[fn], env]
     else
       [fn.(*args), env]
     end
